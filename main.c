@@ -50,6 +50,12 @@ void select_vehicle(Vehicle *v, int* choice);
 
 void initialization(Vehicle*p1, Vehicle* p2);
 
+void card(Vehicle* v);
+
+char numerize(int c) {
+    return (c - '0');
+}
+
 int main(void) {
 
     Vehicle p1, p2 = {"","", 0, 0, 0,0};
@@ -62,6 +68,7 @@ int main(void) {
     initialization(&p1, &p2);
 
     for(;;) {
+        card(&p1);
         getchar();
         break;
     }
@@ -73,30 +80,32 @@ void initialization(Vehicle*p1, Vehicle* p2) {
     printf("Select player count (1, 2):\n");
     int players;
     for(;;) {
-        if (scanf("%d", &players) == EOF) {
-            puts("Insert only number 1 or 2");
-            continue;
-        }
+        while((players = getchar()) == '\n' && players != EOF);
+        players = numerize(players);
         if (players == 2 || players == 1) {
             break;
         }
         puts("Insert only number 1 or 2");
     }
-
     if (players == 1) {
         // Init the AI players vehicle
-        *p2 = vehi_types[DEFAULT_AI];
+        Vehicle n = vehi_types[DEFAULT_AI];
+        *p2 = n;
     }
-    for (int i = 0; i < players; i++) {
-        int chosen_v = 0;
+    // P1 init
+    int chosen_v = 0;
+    select_vehicle(p1, &chosen_v);
+    Vehicle n1 = vehi_types[numerize(chosen_v)-1];
+    *p1 = n1;
+    rename_vehicle(p1);
 
-        if (p1->hp == 0) {
-            *p1 = vehi_types[chosen_v];
-            rename_vehicle(p1);
-        } else {
-            *p2 = vehi_types[chosen_v];
-            rename_vehicle(p2);
-        }
+    // P2 init
+    if (players == 2) {
+        chosen_v = 0;
+        select_vehicle(p2, &chosen_v);
+        Vehicle n2 = vehi_types[numerize(chosen_v)-1];
+        *p2 = n2;
+        rename_vehicle(p2);
     }
 
 }
@@ -108,13 +117,11 @@ void select_vehicle(Vehicle* v, int* choice) {
     printf("[3] Anti-Aircraft Vehicle\n");
     printf("Your choice: ");
     for (;;) {
-        if (scanf("%d", choice) != EOF) {
-            if (*choice == 1 || *choice == 2 || *choice == 3) {
-                break;
-            }
-            puts("Select vehicle 1 2 3");
-
+        while((*choice = getchar()) == '\n' && *choice != EOF);
+        if (*choice == '1' || *choice == '2' || *choice == '3') {
+            break;
         }
+        puts("Select vehicle 1 2 3");
     }
 
 }
@@ -126,12 +133,12 @@ void rename_vehicle(Vehicle *v) {
     strcpy(v->player_name, t);
 }
 
-// WARNING at this time, this function doesnt care about accuracy of shooter.
+// WARNING at this time, this function doesnt care about accuracy of shooter nor armor of target.
 /*
  * Function returns 0 for FALSE (no hit) and 1 for TRUE (hit)
  */
 uint8_t check_hit(Vehicle* shooter, Vehicle* target) {
-    // creates a random int on inverse
+    // creates a random int, larger target -> higher hit chance
     uint8_t high = (uint8_t)(1 / target->size) * 250;
     uint8_t result = rand() % high;
     if ((uint8_t)(high / 2) < result) {
@@ -140,8 +147,16 @@ uint8_t check_hit(Vehicle* shooter, Vehicle* target) {
     return 0;
 }
 
-
-
+void card(Vehicle* v) {
+    printf("\n### VEHICLE STATS ###\n");
+    printf("Player: %s\n", v->player_name);
+    printf("Type: %s\n", v->type);
+    printf("HP: %d\n", v->hp);
+    printf("Damage: %d\n", v->damage);
+    printf("Armor: %d\n", v->armor);
+    printf("Size: %d\n", v->size);
+    printf("\n#####################\n");
+}
 
 
 
